@@ -1,9 +1,19 @@
-FROM runpod/pytorch:2.2.1-py3.10-cuda12.1.1-devel-ubuntu22.04
+FROM ubuntu:22.04
 
-RUN apt-get update && apt-get install -y rsync && rm -rf /var/lib/apt/lists/*
+ENV DEBIAN_FRONTEND=noninteractive
+ENV RAY_TMPDIR=/tmp
+ENV HF_HOME=/workspace/huggingface
 
-# Force pip to prioritize hardware-accelerated PyTorch wheels
-ENV PIP_EXTRA_INDEX_URL=https://download.pytorch.org/whl/cu121
+RUN apt-get update && apt-get install -y \
+    wget build-essential gcc g++ gawk autoconf automake \
+    python3-pip python3-cmarkgfm libssl-dev libxxhash-dev \
+    libzstd-dev liblz4-dev libmagic1 rsync \
+    && rm -rf /var/lib/apt/lists/*
 
-# Resolve dependency conflicts
-RUN pip install --no-cache-dir torch torchvision torchaudio marker-pdf --extra-index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install --no-cache-dir "torch>=2.6" torchvision torchaudio "ray<=2.47.0" marker-pdf --extra-index-url https://download.pytorch.org/whl/cu124
+
+WORKDIR /app
+
+COPY marker_wrapper.py /app/marker_wrapper.py
+
+CMD ["sleep", "infinity"]
