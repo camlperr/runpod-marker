@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     libzstd-dev liblz4-dev libmagic1 rsync \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir "torch>=2.6" torchvision torchaudio "ray<=2.47.0" marker-pdf --extra-index-url https://download.pytorch.org/whl/cu124
+RUN pip3 install --no-cache-dir "torch>=2.6" torchvision torchaudio "ray<=2.47.0" python-dotenv marker-pdf --extra-index-url https://download.pytorch.org/whl/cu124
 
 WORKDIR /app
 

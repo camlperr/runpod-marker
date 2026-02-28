@@ -5,6 +5,11 @@ import subprocess
 import argparse
 import fitz
 import math
+from dotenv import load_dotenv
+
+dotenv_path = os.path.join(os.getcwd(), ".env")
+if os.path.isfile(dotenv_path):
+    load_dotenv(dotenv_path)
 
 def get_optimal_hardware_params(page_count):
     try:
@@ -26,7 +31,7 @@ def get_optimal_hardware_params(page_count):
     
     return workers, chunk_size
 
-def chunk_and_process(pdf_path, final_output_dir, workers_override=None, chunk_override=None):
+def chunk_and_process(pdf_path, final_output_dir, workers_override=None, chunk_override=None, use_llm=False):
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"Input file not found: {pdf_path}")
 
@@ -65,10 +70,13 @@ def chunk_and_process(pdf_path, final_output_dir, workers_override=None, chunk_o
         custom_env["FORCE_OCR"] = "1"
         custom_env["OUTPUT_FORMAT"] = "markdown"
 
-        subprocess.run([
+        cmd = [
             "marker", chunk_dir, marker_out_dir,
             "--workers", str(active_workers)
-        ], env=custom_env, check=True)
+        ]
+        if use_llm:
+            cmd.append("--use_llm")
+        subprocess.run(cmd, env=custom_env, check=True)
 
         os.makedirs(final_output_dir, exist_ok=True)
         final_images_dir = os.path.join(final_output_dir, "images")
@@ -101,7 +109,8 @@ if __name__ == "__main__":
     parser.add_argument("output_dir", help="Destination directory for markdown and extracted images.")
     parser.add_argument("--workers", type=int, help="Override dynamic hardware worker calculation.")
     parser.add_argument("--chunk_size", type=int, help="Override dynamic page chunk calculation.")
-    
+    parser.add_argument("--use_llm", action="store_true", help="Enable LLM-based processing in Marker.")
+
     args = parser.parse_args()
-    
-    chunk_and_process(args.pdf_path, args.output_dir, args.workers, args.chunk_size)
+
+    chunk_and_process(args.pdf_path, args.output_dir, args.workers, args.chunk_size, args.use_llm)
